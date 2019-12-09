@@ -1,0 +1,54 @@
+---
+- hosts: admin
+  tasks:
+    - name: "SHELL procedure"
+      send_cmd:
+        clean_fact: "{{ clean_fact_var }}"
+        procedure:
+          - order: 1
+            type: SHELL
+            host: "localhost"
+            commands:
+              - order: 1
+                cmd: "\\ls -l"
+                # The [^;] is a character class, it matches everything but a semicolon.
+                # match first occurence \r\n : [^(\r\n)]*
+                expected: "ls (?P<WORD>[^(\r\n)]*).*vagrant"
+
+              - order: 2
+                cmd: "ls -l /etc/"
+                expected: ".*ls.*hosts.*vagrant.*"
+                timeout: 25
+ 
+          - order: 2
+            type: SHELL
+            host: "localhost"
+            init_commands:
+              - order: 1
+                cmd: "sudo su -"
+                expected: ".*sudo.*root.*"
+
+            commands:
+              - order: 2
+                cmd: "pwd"
+                expected: ".*pwd.*/root.*"
+                timeout: 25
+ 
+#          - order: 2
+#            type: HBASE
+#            host: "localhost"
+#            init_commands:
+#              - order: 1
+#                cmd: "sudo kinit -kt /etc/keytabs/hbase.keytab hbase"
+#                expected: ".*kinit.*vagrant.*"
+#
+#              - order: 2
+#                cmd: "hbase shell"
+#                expected: ".*hbase\\(main\\).*"
+#                timeout: 25
+#            commands:
+#              - order: 3
+#                cmd: "[CACHE:WORD]"
+#                expected: ".*hbase> list_peers.*hbase.*"
+  vars:
+    clean_fact_var: False
